@@ -10,38 +10,33 @@ public class ParkingHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDateTime checkIn;
-    private LocalDateTime checkOut;
+    private LocalDateTime entryTime;
+    private LocalDateTime exitTime;
 
     @ManyToOne
+    @JoinColumn(name = "plate_id")
     private LicensePlate licensePlate;
 
-    public ParkingHistory() {}
-
-    public ParkingHistory(LocalDateTime checkIn, LocalDateTime checkOut, LicensePlate licensePlate) {
-        this.checkIn = checkIn;
-        this.checkOut = checkOut;
-        this.licensePlate = licensePlate;
-    }
+    // Getteri și setteri
 
     public Long getId() {
         return id;
     }
 
-    public LocalDateTime getCheckIn() {
-        return checkIn;
+    public LocalDateTime getEntryTime() {
+        return entryTime;
     }
 
-    public void setCheckIn(LocalDateTime checkIn) {
-        this.checkIn = checkIn;
+    public void setEntryTime(LocalDateTime entryTime) {
+        this.entryTime = entryTime;
     }
 
-    public LocalDateTime getCheckOut() {
-        return checkOut;
+    public LocalDateTime getExitTime() {
+        return exitTime;
     }
 
-    public void setCheckOut(LocalDateTime checkOut) {
-        this.checkOut = checkOut;
+    public void setExitTime(LocalDateTime exitTime) {
+        this.exitTime = exitTime;
     }
 
     public LicensePlate getLicensePlate() {

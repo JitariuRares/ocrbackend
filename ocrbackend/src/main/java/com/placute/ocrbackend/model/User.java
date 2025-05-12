@@ -1,6 +1,7 @@
 package com.placute.ocrbackend.model;
 
 import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 public class User {
@@ -11,15 +12,12 @@ public class User {
 
     private String username;
     private String password;
-    private String role; // POLITIST, PARCARE, ASIGURARE
+    private String role; // ex: POLITIST, PARCARE, ASIGURARE
 
-    public User() {}
+    @OneToMany(mappedBy = "user")
+    private List<LicensePlate> licensePlates;
 
-    public User(String username, String password, String role) {
-        this.username = username;
-        this.password = password;
-        this.role = role;
-    }
+    // Getteri și setteri
 
     public Long getId() {
         return id;
@@ -47,5 +45,13 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public List<LicensePlate> getLicensePlates() {
+        return licensePlates;
+    }
+
+    public void setLicensePlates(List<LicensePlate> licensePlates) {
+        this.licensePlates = licensePlates;
     }
 }

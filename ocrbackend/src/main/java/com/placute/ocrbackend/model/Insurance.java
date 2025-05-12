@@ -10,48 +10,42 @@ public class Insurance {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String provider;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private String company;
+    private LocalDate validFrom;
+    private LocalDate validTo;
 
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "plate_id")
     private LicensePlate licensePlate;
 
-    public Insurance() {}
-
-    public Insurance(String provider, LocalDate startDate, LocalDate endDate, LicensePlate licensePlate) {
-        this.provider = provider;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.licensePlate = licensePlate;
-    }
+    // Getteri și setteri
 
     public Long getId() {
         return id;
     }
 
-    public String getProvider() {
-        return provider;
+    public String getCompany() {
+        return company;
     }
 
-    public void setProvider(String provider) {
-        this.provider = provider;
+    public void setCompany(String company) {
+        this.company = company;
     }
 
-    public LocalDate getStartDate() {
-        return startDate;
+    public LocalDate getValidFrom() {
+        return validFrom;
     }
 
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
+    public void setValidFrom(LocalDate validFrom) {
+        this.validFrom = validFrom;
     }
 
-    public LocalDate getEndDate() {
-        return endDate;
+    public LocalDate getValidTo() {
+        return validTo;
     }
 
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
+    public void setValidTo(LocalDate validTo) {
+        this.validTo = validTo;
     }
 
     public LicensePlate getLicensePlate() {
