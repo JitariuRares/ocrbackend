@@ -20,7 +20,7 @@ public class LicensePlate {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private AppUser user;
 
     @OneToMany(mappedBy = "licensePlate", cascade = CascadeType.ALL)
     private List<ParkingHistory> parkingHistory;
@@ -62,11 +62,11 @@ public class LicensePlate {
         this.imagePath = imagePath;
     }
 
-    public User getUser() {
+    public AppUser getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(AppUser user) {
         this.user = user;
     }
 
