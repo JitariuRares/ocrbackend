@@ -12,7 +12,9 @@ public class AppUser {
 
     private String username;
     private String password;
-    private String role; // ex: POLITIST, PARCARE, ASIGURARE
+
+    @Enumerated(EnumType.STRING)
+    private UserRole role; // enum în loc de String
 
     @OneToMany(mappedBy = "user")
     private List<LicensePlate> licensePlates;
@@ -39,11 +41,11 @@ public class AppUser {
         this.password = password;
     }
 
-    public String getRole() {
+    public UserRole getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(UserRole role) {
         this.role = role;
     }
 
