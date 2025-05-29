@@ -3,6 +3,7 @@ package com.placute.ocrbackend.controller;
 import com.placute.ocrbackend.model.LicensePlate;
 import com.placute.ocrbackend.repository.LicensePlateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,19 +15,20 @@ public class LicensePlateController {
     @Autowired
     private LicensePlateRepository licensePlateRepository;
 
-    // GET toate plăcuțele
+    @PreAuthorize("hasRole('POLICE')")
     @GetMapping
     public List<LicensePlate> getAllPlates() {
         return licensePlateRepository.findAll();
     }
 
-    // GET după număr
+    @PreAuthorize("hasRole('POLICE')")
     @GetMapping("/{plateNumber}")
-    public LicensePlate getByPlateNumber(@PathVariable String plateNumber) {
+    public List<LicensePlate> getByPlateNumber(@PathVariable String plateNumber) {
         return licensePlateRepository.findByPlateNumber(plateNumber);
     }
 
-    // POST nouă plăcuță
+
+    @PreAuthorize("hasAnyRole('POLICE', 'PARKING')")
     @PostMapping
     public LicensePlate savePlate(@RequestBody LicensePlate plate) {
         return licensePlateRepository.save(plate);
