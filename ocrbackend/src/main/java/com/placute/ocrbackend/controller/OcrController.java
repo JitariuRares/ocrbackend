@@ -1,11 +1,12 @@
 package com.placute.ocrbackend.controller;
 
-import com.placute.ocrbackend.service.OcrService;
-import com.placute.ocrbackend.repository.LicensePlateRepository;
+import com.placute.ocrbackend.dto.OcrPlateDto;
 import com.placute.ocrbackend.model.LicensePlate;
+import com.placute.ocrbackend.repository.LicensePlateRepository;
+import com.placute.ocrbackend.service.OcrService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,27 +25,43 @@ public class OcrController {
     @Autowired
     private LicensePlateRepository plateRepository;
 
-    /**
-     * POST /api/ocr
-     * – primește parametru “image” în form-data,
-     * – apelează recognizeText(...) care salvează LicensePlate + OcrHistory
-     * – returnează mesajul cu “Plăcuță detectată și salvată: XXX”
-     */
+    /** ENDPOINTUL TĂU VECHI – rămâne neschimbat, întoarce String */
     @PreAuthorize("hasAnyRole('POLICE', 'PARKING')")
     @PostMapping("/ocr")
     public ResponseEntity<String> uploadImage(@RequestParam("image") MultipartFile file) throws IOException {
         File convFile = new File(System.getProperty("java.io.tmpdir") + "/" + file.getOriginalFilename());
         file.transferTo(convFile);
 
-        // recognizeText salvează și în LicensePlate, și în OcrHistory
         String result = ocrService.recognizeText(convFile);
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * GET /api/plates
-     * – returnează lista tuturor plăcuțelor salvate (LicensePlate)
-     */
+    /** NOU: întoarce detaliile ca JSON curat (DTO) */
+    @PreAuthorize("hasAnyRole('POLICE', 'PARKING')")
+    @PostMapping("/ocr/full")
+    public ResponseEntity<?> uploadImageFull(@RequestParam("image") MultipartFile file) throws IOException {
+        File convFile = new File(System.getProperty("java.io.tmpdir") + "/" + file.getOriginalFilename());
+        file.transferTo(convFile);
+
+        LicensePlate lp = ocrService.recognizeAndReturnPlate(convFile);
+        if (lp == null) {
+            return ResponseEntity.status(404).body("Nicio plăcuță validă găsită.");
+        }
+
+        OcrPlateDto dto = new OcrPlateDto(
+                lp.getId(),
+                lp.getPlateNumber(),
+                lp.getBrand(),
+                lp.getModel(),
+                lp.getOwner(),
+                lp.getImagePath(),
+                lp.getDetectedAt(),
+                lp.getUser() != null ? lp.getUser().getUsername() : null,
+                lp.getUser() != null ? lp.getUser().getRole().name() : null
+        );
+        return ResponseEntity.ok(dto);
+    }
+
     @PreAuthorize("hasAnyRole('POLICE', 'PARKING')")
     @GetMapping("/plates")
     public ResponseEntity<List<LicensePlate>> getAllPlates() {

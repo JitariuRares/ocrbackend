@@ -10,11 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Controller pentru istoricul OCR:
- *  - GET /plates/history       → afișează toate înregistrările, ord. desc.
- *  - GET /plates/history/search → căutare fuzzy după plateNumber
- */
 @RestController
 @RequestMapping("/plates")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -23,36 +18,49 @@ public class OcrHistoryController {
     @Autowired
     private OcrHistoryRepository historyRepository;
 
-    // 1) GET /plates/history
+    // GET /plates/history
     @GetMapping("/history")
     public ResponseEntity<List<OcrHistoryDto>> getAllHistory() {
         List<OcrHistory> all = historyRepository.findAllByOrderByProcessedAtDesc();
 
         List<OcrHistoryDto> dtoList = all.stream()
-                .map(h -> new OcrHistoryDto(
-                        h.getId(),
-                        h.getLicensePlate().getPlateNumber(),
-                        h.getLicensePlate().getImagePath(),
-                        h.getProcessedAt()
-                ))
+                .map(h -> {
+                    // Preluăm entitatea LicensePlate
+                    var lp = h.getLicensePlate();
+                    return new OcrHistoryDto(
+                            h.getId(),
+                            lp.getPlateNumber(),
+                            lp.getBrand(),           // nou
+                            lp.getModel(),           // nou
+                            lp.getOwner(),           // nou
+                            lp.getImagePath(),
+                            h.getProcessedAt()
+                    );
+                })
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(dtoList);
     }
 
-    // 2) GET /plates/history/search?query=XYZ
+    // GET /plates/history/search?query=…
     @GetMapping("/history/search")
     public ResponseEntity<List<OcrHistoryDto>> searchHistory(@RequestParam("query") String query) {
-        List<OcrHistory> partial =
-                historyRepository.findByLicensePlate_PlateNumberContainingIgnoreCaseOrderByProcessedAtDesc(query);
+        List<OcrHistory> partial = historyRepository
+                .findByLicensePlate_PlateNumberContainingIgnoreCaseOrderByProcessedAtDesc(query);
 
         List<OcrHistoryDto> dtoList = partial.stream()
-                .map(h -> new OcrHistoryDto(
-                        h.getId(),
-                        h.getLicensePlate().getPlateNumber(),
-                        h.getLicensePlate().getImagePath(),
-                        h.getProcessedAt()
-                ))
+                .map(h -> {
+                    var lp = h.getLicensePlate();
+                    return new OcrHistoryDto(
+                            h.getId(),
+                            lp.getPlateNumber(),
+                            lp.getBrand(),
+                            lp.getModel(),
+                            lp.getOwner(),
+                            lp.getImagePath(),
+                            h.getProcessedAt()
+                    );
+                })
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(dtoList);
