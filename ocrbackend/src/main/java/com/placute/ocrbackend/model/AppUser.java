@@ -1,5 +1,6 @@
 package com.placute.ocrbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class AppUser {
     private UserRole role; // enum în loc de String
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<LicensePlate> licensePlates;
 
     // Getteri și setteri

@@ -1,5 +1,6 @@
 package com.placute.ocrbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,6 +39,7 @@ public class LicensePlate {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private AppUser user;
 
     @OneToMany(mappedBy = "licensePlate", cascade = CascadeType.ALL)

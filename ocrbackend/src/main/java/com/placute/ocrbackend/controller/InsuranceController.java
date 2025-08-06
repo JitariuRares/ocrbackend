@@ -15,11 +15,12 @@ public class InsuranceController {
     @Autowired
     private InsuranceRepository insuranceRepository;
 
-    @PreAuthorize("hasRole('INSURANCE')")
+    @PreAuthorize("hasAnyRole('INSURANCE', 'POLICE')")
     @GetMapping("/{plateNumber}")
     public List<Insurance> getInsuranceByPlate(@PathVariable String plateNumber) {
         return insuranceRepository.findByLicensePlate_PlateNumber(plateNumber);
     }
+
 
     @PreAuthorize("hasRole('INSURANCE')")
     @PostMapping
