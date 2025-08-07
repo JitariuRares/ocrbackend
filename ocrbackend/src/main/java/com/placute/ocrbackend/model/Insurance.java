@@ -1,5 +1,6 @@
 package com.placute.ocrbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
@@ -16,6 +17,7 @@ public class Insurance {
 
     @ManyToOne
     @JoinColumn(name = "plate_id")
+    @JsonBackReference
     private LicensePlate licensePlate;
 
     // Getteri și setteri

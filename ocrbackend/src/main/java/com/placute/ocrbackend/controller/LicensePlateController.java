@@ -35,11 +35,12 @@ public class LicensePlateController {
      * – Returnează listele de LicensePlate care au exactly plateNumber
      * – Rol accesibil: POLICE
      */
-    @PreAuthorize("hasRole('POLICE')")
+    @PreAuthorize("hasAnyRole('POLICE', 'INSURANCE')")
     @GetMapping("/{plateNumber}")
     public List<LicensePlate> getByPlateNumber(@PathVariable String plateNumber) {
         return licensePlateRepository.findByPlateNumber(plateNumber);
     }
+
 
     /**
      * POST /api/license-plates
