@@ -16,7 +16,7 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "7365637265742d6a77626d2d6b65792d666f722d6c6963656e73652d6f6372"; // base64 encoded
+    private static final String SECRET_KEY = "7365637265742d6a77626d2d6b65792d666f722d6c6963656e73652d6f6372";
 
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
@@ -56,7 +56,7 @@ public class JwtService {
                 .setClaims(claims)
                 .setSubject(user.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 ore
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

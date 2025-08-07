@@ -18,14 +18,12 @@ public class OcrHistoryController {
     @Autowired
     private OcrHistoryRepository historyRepository;
 
-    // GET /plates/history
     @GetMapping("/history")
     public ResponseEntity<List<OcrHistoryDto>> getAllHistory() {
         List<OcrHistory> all = historyRepository.findAllByOrderByProcessedAtDesc();
 
         List<OcrHistoryDto> dtoList = all.stream()
                 .map(h -> {
-                    // Preluăm entitatea LicensePlate
                     var lp = h.getLicensePlate();
                     return new OcrHistoryDto(
                             h.getId(),
@@ -42,7 +40,6 @@ public class OcrHistoryController {
         return ResponseEntity.ok(dtoList);
     }
 
-    // GET /plates/history/search?query=…
     @GetMapping("/history/search")
     public ResponseEntity<List<OcrHistoryDto>> searchHistory(@RequestParam("query") String query) {
         List<OcrHistory> partial = historyRepository

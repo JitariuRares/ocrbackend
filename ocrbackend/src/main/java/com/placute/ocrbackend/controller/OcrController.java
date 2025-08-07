@@ -25,7 +25,6 @@ public class OcrController {
     @Autowired
     private LicensePlateRepository plateRepository;
 
-    /** ENDPOINTUL TĂU VECHI – rămâne neschimbat, întoarce String */
     @PreAuthorize("hasAnyRole('POLICE', 'PARKING')")
     @PostMapping("/ocr")
     public ResponseEntity<String> uploadImage(@RequestParam("image") MultipartFile file) throws IOException {
@@ -36,7 +35,6 @@ public class OcrController {
         return ResponseEntity.ok(result);
     }
 
-    /** NOU: întoarce detaliile ca JSON curat (DTO) */
     @PreAuthorize("hasAnyRole('POLICE', 'PARKING')")
     @PostMapping("/ocr/full")
     public ResponseEntity<?> uploadImageFull(@RequestParam("image") MultipartFile file) throws IOException {
@@ -45,7 +43,7 @@ public class OcrController {
 
         LicensePlate lp = ocrService.recognizeAndReturnPlate(convFile);
         if (lp == null) {
-            return ResponseEntity.status(404).body("Nicio plăcuță validă găsită.");
+            return ResponseEntity.status(404).body("Nicio plăcuta valida gasita.");
         }
 
         OcrPlateDto dto = new OcrPlateDto(

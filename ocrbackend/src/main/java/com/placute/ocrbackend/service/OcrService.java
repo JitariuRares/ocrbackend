@@ -42,7 +42,6 @@ public class OcrService {
         return output;
     }
 
-    /** VARIANTA EXISTENTĂ – rămâne la fel (întoarce String) */
     public String recognizeText(File imageFile) {
         try {
             File processed = preprocessImage(imageFile);
@@ -71,9 +70,9 @@ public class OcrService {
                 OcrHistory history = new OcrHistory(lp, imageFile.getName(), LocalDateTime.now());
                 historyRepository.save(history);
 
-                return "Plăcuță detectată și salvată: " + plate;
+                return "Placuta detectata si salvata: " + plate;
             } else {
-                return "Nicio plăcuță validă găsită.";
+                return "Nicio placuta valida gasita.";
             }
 
         } catch (TesseractException | IOException e) {
@@ -81,7 +80,6 @@ public class OcrService {
         }
     }
 
-    /** NOU – întoarce entitatea LicensePlate (sau null dacă nu găsește) */
     public LicensePlate recognizeAndReturnPlate(File imageFile) {
         try {
             File processed = preprocessImage(imageFile);

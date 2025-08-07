@@ -4,7 +4,6 @@ public class AuthRequest {
     private String username;
     private String password;
 
-    // Getteri și setteri
     public String getUsername() {
         return username;
     }

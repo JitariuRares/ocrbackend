@@ -42,17 +42,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Originea aplicației React
         config.setAllowedOrigins(List.of("*"));
-        // Permitem trimiterea token-ului în header „Authorization”
         config.setAllowCredentials(false);
-        // Permitem orice metodă (GET, POST, PUT, DELETE etc.)
         config.setAllowedMethods(List.of("*"));
-        // Permitem orice antet (inclusiv „Authorization”, „Content-Type” etc.)
         config.setAllowedHeaders(List.of("*"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Aplicați CORS pentru toate endpoint-urile (“/**”)
         source.registerCorsConfiguration("/**", config);
         return source;
     }

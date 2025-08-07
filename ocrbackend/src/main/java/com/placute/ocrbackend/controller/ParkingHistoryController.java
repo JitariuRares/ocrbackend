@@ -31,7 +31,7 @@ public class ParkingHistoryController {
         if (plates.isEmpty()) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body("Plăcuța de înmatriculare nu există în baza de date.");
+                    .body("Placuta de inmatriculare nu exista in baza de date.");
         }
 
         record.setLicensePlate(plates.get(0));

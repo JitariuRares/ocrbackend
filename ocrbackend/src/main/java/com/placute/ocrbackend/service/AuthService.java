@@ -30,16 +30,16 @@ public class AuthService {
         user.setRole(request.getRole());
 
         userRepository.save(user);
-        return "User înregistrat cu succes!";
+        return "User inregistrat cu succes!";
     }
 
     public AuthResponse login(LoginRequest request) {
         AppUser user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Userul nu există"));
+                .orElseThrow(() -> new RuntimeException("Userul nu exista"));
 
         boolean valid = passwordEncoder.matches(request.getPassword(), user.getPassword());
         if (!valid) {
-            throw new RuntimeException("Parolă incorectă");
+            throw new RuntimeException("Parola incorecta");
         }
 
         String token = jwtService.generateToken(user);

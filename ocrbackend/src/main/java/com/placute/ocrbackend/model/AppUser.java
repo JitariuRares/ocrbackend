@@ -21,7 +21,6 @@ public class AppUser {
     @JsonIgnore
     private List<LicensePlate> licensePlates;
 
-    // Getteri și setteri
 
     public Long getId() {
         return id;

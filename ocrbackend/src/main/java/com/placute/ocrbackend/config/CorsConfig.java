@@ -13,12 +13,11 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")              // aplică pe toate endpoint-urile “/**”
-                        .allowedOrigins("*")            // permite orice origine
-                        .allowedMethods("*")            // permite toate metodele: GET, POST, PUT, DELETE etc.
-                        .allowedHeaders("*")            // permite toate antetele (headers)
-                        .allowCredentials(false);       // dacă nu folosești cookies/token în cerere, poți seta false
-                // Dacă totuși ai nevoie de credentiale (cookie, header Authorization etc.), setează true
+                registry.addMapping("/**")
+                        .allowedOrigins("*")
+                        .allowedMethods("*")
+                        .allowedHeaders("*")
+                        .allowCredentials(false);
             }
         };
     }

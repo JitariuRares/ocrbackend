@@ -82,7 +82,7 @@ public class LicensePlateController {
         if (plates.isEmpty()) {
             throw new RuntimeException("Plăcuța nu există");
         }
-        LicensePlate plate = plates.get(plates.size() - 1); // ia ultimul – presupus cel mai actualizat
+        LicensePlate plate = plates.get(plates.size() - 1);
 
         List<Insurance> insurances = insuranceRepository.findByLicensePlate_PlateNumber(plateNumber);
         List<ParkingHistory> parking = parkingHistoryRepository.findByLicensePlate_PlateNumber(plateNumber);

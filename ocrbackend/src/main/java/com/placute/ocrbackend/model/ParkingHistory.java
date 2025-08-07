@@ -19,7 +19,6 @@ public class ParkingHistory {
     @JsonBackReference
     private LicensePlate licensePlate;
 
-    // Getteri și setteri
 
     public Long getId() {
         return id;

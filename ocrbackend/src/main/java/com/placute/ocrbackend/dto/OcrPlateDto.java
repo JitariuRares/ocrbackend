@@ -10,8 +10,8 @@ public class OcrPlateDto {
     private String owner;
     private String imagePath;
     private LocalDateTime detectedAt;
-    private String user;   // username
-    private String role;   // POLICE / PARKING / INSURANCE
+    private String user;
+    private String role;
 
     public OcrPlateDto(Long id, String plateNumber, String brand, String model, String owner,
                        String imagePath, LocalDateTime detectedAt, String user, String role) {

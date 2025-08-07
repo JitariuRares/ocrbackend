@@ -6,9 +6,9 @@ public class OcrHistoryDto {
 
     private Long id;
     private String plateNumber;
-    private String brand;          // nou
-    private String model;          // nou
-    private String owner;          // nou
+    private String brand;
+    private String model;
+    private String owner;
     private String imagePath;
     private LocalDateTime processedAt;
 
@@ -22,7 +22,6 @@ public class OcrHistoryDto {
         this.processedAt = processedAt;
     }
 
-    // Getteri
     public Long getId() {
         return id;
     }
