@@ -1,5 +1,6 @@
 package com.placute.ocrbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -15,6 +16,7 @@ public class ParkingHistory {
 
     @ManyToOne
     @JoinColumn(name = "plate_id")
+    @JsonBackReference
     private LicensePlate licensePlate;
 
     // Getteri și setteri

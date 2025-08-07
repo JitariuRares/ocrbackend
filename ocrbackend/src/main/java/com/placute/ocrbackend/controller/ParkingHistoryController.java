@@ -1,8 +1,12 @@
 package com.placute.ocrbackend.controller;
 
+import com.placute.ocrbackend.model.LicensePlate;
 import com.placute.ocrbackend.model.ParkingHistory;
+import com.placute.ocrbackend.repository.LicensePlateRepository;
 import com.placute.ocrbackend.repository.ParkingHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,11 +19,26 @@ public class ParkingHistoryController {
     @Autowired
     private ParkingHistoryRepository parkingHistoryRepository;
 
+    @Autowired
+    private LicensePlateRepository licensePlateRepository;
+
     @PreAuthorize("hasRole('PARKING')")
     @PostMapping
-    public ParkingHistory addParkingRecord(@RequestBody ParkingHistory record) {
-        return parkingHistoryRepository.save(record);
+    public ResponseEntity<?> addParkingRecord(@RequestBody ParkingHistory record) {
+        String plateNumber = record.getLicensePlate().getPlateNumber();
+
+        List<LicensePlate> plates = licensePlateRepository.findByPlateNumber(plateNumber);
+        if (plates.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Plăcuța de înmatriculare nu există în baza de date.");
+        }
+
+        record.setLicensePlate(plates.get(0));
+        ParkingHistory saved = parkingHistoryRepository.save(record);
+        return ResponseEntity.ok(saved);
     }
+
 
     @PreAuthorize("hasRole('PARKING')")
     @GetMapping("/{plateNumber}")

@@ -44,6 +44,7 @@ public class LicensePlate {
     private AppUser user;
 
     @OneToMany(mappedBy = "licensePlate", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<ParkingHistory> parkingHistory;
 
     @OneToMany(mappedBy = "licensePlate", cascade = CascadeType.ALL)
