@@ -91,6 +91,7 @@ public class OcrService {
             tesseract.setLanguage("eng");
 
             String rawText = tesseract.doOCR(processed);
+            System.out.println("TEXT DETECTAT de OCR:\n" + rawText);
             String cleanedText = rawText.toUpperCase().replaceAll("[^A-Z0-9 ]", "");
 
             Pattern pattern = Pattern.compile("[A-Z]{1,2}\\s?\\d{2}\\s?[A-Z]{3}");
