@@ -22,7 +22,7 @@ public class ParkingHistoryController {
     @Autowired
     private LicensePlateRepository licensePlateRepository;
 
-    @PreAuthorize("hasRole('PARKING')")
+    @PreAuthorize("hasAnyRole('PARKING', 'POLICE')")
     @PostMapping
     public ResponseEntity<?> addParkingRecord(@RequestBody ParkingHistory record) {
         String plateNumber = record.getLicensePlate().getPlateNumber();
@@ -31,7 +31,20 @@ public class ParkingHistoryController {
         if (plates.isEmpty()) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body("Placuta de inmatriculare nu exista in baza de date.");
+                    .body("Plăcuța de înmatriculare nu există în baza de date.");
+        }
+
+        // Verificăm dacă există deja o înregistrare identică
+        List<ParkingHistory> existing = parkingHistoryRepository.findByLicensePlate_PlateNumber(plateNumber);
+        boolean duplicate = existing.stream().anyMatch(e ->
+                e.getEntryTime().equals(record.getEntryTime()) &&
+                        ((e.getExitTime() == null && record.getExitTime() == null) ||
+                                (e.getExitTime() != null && e.getExitTime().equals(record.getExitTime())))
+        );
+
+        if (duplicate) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Această înregistrare de parcare există deja.");
         }
 
         record.setLicensePlate(plates.get(0));
@@ -40,9 +53,11 @@ public class ParkingHistoryController {
     }
 
 
-    @PreAuthorize("hasRole('PARKING')")
+
+    @PreAuthorize("hasAnyRole('PARKING', 'POLICE')")
     @GetMapping("/{plateNumber}")
     public List<ParkingHistory> getParkingByPlate(@PathVariable String plateNumber) {
         return parkingHistoryRepository.findByLicensePlate_PlateNumber(plateNumber);
     }
+
 }

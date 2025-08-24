@@ -9,6 +9,7 @@ import com.placute.ocrbackend.repository.InsuranceRepository;
 import com.placute.ocrbackend.repository.LicensePlateRepository;
 import com.placute.ocrbackend.repository.ParkingHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,12 +49,29 @@ public class LicensePlateController {
 
     @PreAuthorize("hasAnyRole('POLICE', 'PARKING')")
     @PostMapping
-    public LicensePlate savePlate(@RequestBody LicensePlate plate) {
+    public ResponseEntity<?> savePlate(@RequestBody LicensePlate plate) {
+        String plateNumber = plate.getPlateNumber();
+        String imagePath = plate.getImagePath();
+
+        List<LicensePlate> existingPlates = licensePlateRepository.findByPlateNumber(plateNumber);
+        boolean alreadyExists = existingPlates.stream().anyMatch(p ->
+                (p.getImagePath() == null && imagePath == null) ||
+                        (p.getImagePath() != null && p.getImagePath().equals(imagePath))
+        );
+
+        if (alreadyExists) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Plăcuța există deja în sistem.");
+        }
+
         if (plate.getDetectedAt() == null) {
             plate.setDetectedAt(LocalDateTime.now());
         }
-        return licensePlateRepository.save(plate);
+
+        LicensePlate saved = licensePlateRepository.save(plate);
+        return ResponseEntity.ok(saved);
     }
+
 
     @PreAuthorize("hasAnyRole('POLICE', 'PARKING')")
     @PutMapping("/{id}")
