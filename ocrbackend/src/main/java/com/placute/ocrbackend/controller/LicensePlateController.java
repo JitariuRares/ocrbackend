@@ -9,7 +9,6 @@ import com.placute.ocrbackend.repository.InsuranceRepository;
 import com.placute.ocrbackend.repository.LicensePlateRepository;
 import com.placute.ocrbackend.repository.ParkingHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,29 +48,12 @@ public class LicensePlateController {
 
     @PreAuthorize("hasAnyRole('POLICE', 'PARKING')")
     @PostMapping
-    public ResponseEntity<?> savePlate(@RequestBody LicensePlate plate) {
-        String plateNumber = plate.getPlateNumber();
-        String imagePath = plate.getImagePath();
-
-        List<LicensePlate> existingPlates = licensePlateRepository.findByPlateNumber(plateNumber);
-        boolean alreadyExists = existingPlates.stream().anyMatch(p ->
-                (p.getImagePath() == null && imagePath == null) ||
-                        (p.getImagePath() != null && p.getImagePath().equals(imagePath))
-        );
-
-        if (alreadyExists) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Plăcuța există deja în sistem.");
-        }
-
+    public LicensePlate savePlate(@RequestBody LicensePlate plate) {
         if (plate.getDetectedAt() == null) {
             plate.setDetectedAt(LocalDateTime.now());
         }
-
-        LicensePlate saved = licensePlateRepository.save(plate);
-        return ResponseEntity.ok(saved);
+        return licensePlateRepository.save(plate);
     }
-
 
     @PreAuthorize("hasAnyRole('POLICE', 'PARKING')")
     @PutMapping("/{id}")
@@ -120,7 +102,7 @@ public class LicensePlateController {
                     img.scaleToFit(400, 200);
                     document.add(img);
                 } catch (Exception e) {
-                    document.add(new Paragraph("[Imagine indisponibila]"));
+                    document.add(new Paragraph("Imagine indisponibila"));
                 }
             }
 

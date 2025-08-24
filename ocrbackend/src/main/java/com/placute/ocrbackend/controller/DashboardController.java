@@ -1,9 +1,10 @@
 package com.placute.ocrbackend.controller;
 
+import com.placute.ocrbackend.dto.DashboardStatsDto;
 import com.placute.ocrbackend.model.AppUser;
-import com.placute.ocrbackend.model.UserRole;
 import com.placute.ocrbackend.repository.AppUserRepository;
 import com.placute.ocrbackend.security.JwtService;
+import com.placute.ocrbackend.service.DashboardService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,9 @@ public class DashboardController {
 
     @Autowired
     private AppUserRepository appUserRepository;
+
+    @Autowired
+    private DashboardService dashboardService;
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping
@@ -50,5 +54,11 @@ public class DashboardController {
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/stats")
+    public ResponseEntity<DashboardStatsDto> getDashboardStats() {
+        return ResponseEntity.ok(dashboardService.getDashboardStats());
     }
 }
