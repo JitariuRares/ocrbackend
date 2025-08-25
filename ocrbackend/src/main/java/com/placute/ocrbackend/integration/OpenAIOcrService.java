@@ -28,7 +28,7 @@ public class OpenAIOcrService {
 
         JSONObject textPart = new JSONObject();
         textPart.put("type", "text");
-        textPart.put("text", "Ce număr de înmatriculare apare în această imagine? Dă-mi doar textul, fără explicații.");
+        textPart.put("text", "Ce numar de inmatriculare apare in aceasta imagine? Da-mi doar textul, fara explicatii.");
         content.put(textPart);
 
         JSONObject imagePart = new JSONObject();

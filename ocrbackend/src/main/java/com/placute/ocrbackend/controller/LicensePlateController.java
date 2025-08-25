@@ -1,6 +1,7 @@
 package com.placute.ocrbackend.controller;
 
 import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.placute.ocrbackend.model.Insurance;
 import com.placute.ocrbackend.model.LicensePlate;
@@ -80,57 +81,122 @@ public class LicensePlateController {
     public ResponseEntity<byte[]> exportPdf(@PathVariable String plateNumber) throws IOException {
         List<LicensePlate> plates = licensePlateRepository.findByPlateNumber(plateNumber);
         if (plates.isEmpty()) {
-            throw new RuntimeException("Plăcuța nu există");
+            throw new RuntimeException("Placuta nu exista");
         }
         LicensePlate plate = plates.get(plates.size() - 1);
-
         List<Insurance> insurances = insuranceRepository.findByLicensePlate_PlateNumber(plateNumber);
         List<ParkingHistory> parking = parkingHistoryRepository.findByLicensePlate_PlateNumber(plateNumber);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Document document = new Document();
         try {
-            PdfWriter.getInstance(document, out);
+            PdfWriter writer = PdfWriter.getInstance(document, out);
             document.open();
 
-            document.add(new Paragraph("Fisa completa pentru placuta: " + plateNumber));
-            document.add(new Paragraph(" "));
+            Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, new BaseColor(0, 51, 102));
+            Font labelFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+            Font textFont = new Font(Font.FontFamily.HELVETICA, 12);
+            Font sectionTitleFont = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
+            Font redFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.RED);
+            Font grayFont = new Font(Font.FontFamily.HELVETICA, 10, Font.ITALIC, new BaseColor(120, 120, 120));
+
+            Paragraph title = new Paragraph("Fisa completa pentru placuta: " + plateNumber, titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20);
+            document.add(title);
 
             if (plate.getImagePath() != null) {
                 try {
                     Image img = Image.getInstance(plate.getImagePath());
                     img.scaleToFit(400, 200);
+                    img.setAlignment(Image.ALIGN_CENTER);
                     document.add(img);
+
+                    Paragraph caption = new Paragraph("Imaginea vehiculului", grayFont);
+                    caption.setAlignment(Element.ALIGN_CENTER);
+                    caption.setSpacingAfter(15);
+                    document.add(caption);
                 } catch (Exception e) {
-                    document.add(new Paragraph("Imagine indisponibila"));
+                    document.add(new Paragraph("Imagine indisponibila", redFont));
                 }
             }
 
-            document.add(new Paragraph("Marca: " + (plate.getBrand() != null ? plate.getBrand() : "-")));
-            document.add(new Paragraph("Model: " + (plate.getModel() != null ? plate.getModel() : "-")));
-            document.add(new Paragraph("Proprietar: " + (plate.getOwner() != null ? plate.getOwner() : "-")));
-            document.add(new Paragraph(" "));
+            PdfPTable vehicleTable = new PdfPTable(2);
+            vehicleTable.setWidthPercentage(100);
+            vehicleTable.setSpacingBefore(10);
+            vehicleTable.setSpacingAfter(15);
+            vehicleTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
 
-            document.add(new Paragraph("Asigurari:"));
+            vehicleTable.addCell(new Phrase("Marca:", labelFont));
+            vehicleTable.addCell(new Phrase(plate.getBrand() != null ? plate.getBrand() : "-", textFont));
+
+            vehicleTable.addCell(new Phrase("Model:", labelFont));
+            vehicleTable.addCell(new Phrase(plate.getModel() != null ? plate.getModel() : "-", textFont));
+
+            vehicleTable.addCell(new Phrase("Proprietar:", labelFont));
+            vehicleTable.addCell(new Phrase(plate.getOwner() != null ? plate.getOwner() : "-", textFont));
+
+            vehicleTable.addCell(new Phrase("Detectat la:", labelFont));
+            vehicleTable.addCell(new Phrase(plate.getDetectedAt().toString(), textFont));
+
+            document.add(vehicleTable);
+
+            Paragraph insuranceTitle = new Paragraph("🛡️ Asigurari", sectionTitleFont);
+            insuranceTitle.getFont().setColor(new BaseColor(255, 111, 0));
+            insuranceTitle.setSpacingAfter(10);
+            document.add(insuranceTitle);
+
             if (insurances.isEmpty()) {
-                document.add(new Paragraph(" - Nicio asigurare gasita"));
+                document.add(new Paragraph("❌ Nicio asigurare gasita.", redFont));
             } else {
-                for (Insurance ins : insurances) {
-                    document.add(new Paragraph(" - " + ins.getCompany() +
-                            " (" + ins.getValidFrom() + " → " + ins.getValidTo() + ")"));
-                }
-            }
-            document.add(new Paragraph(" "));
+                PdfPTable insuranceTable = new PdfPTable(3);
+                insuranceTable.setWidthPercentage(100);
+                insuranceTable.setSpacingBefore(5);
+                insuranceTable.setSpacingAfter(15);
 
-            document.add(new Paragraph("Istoric parcare:"));
-            if (parking.isEmpty()) {
-                document.add(new Paragraph(" - Niciun istoric de parcare"));
-            } else {
-                for (ParkingHistory entry : parking) {
-                    document.add(new Paragraph(" - Intrare: " + entry.getEntryTime() +
-                            ", Iesire: " + (entry.getExitTime() != null ? entry.getExitTime() : "N/A")));
+                insuranceTable.addCell("Companie");
+                insuranceTable.addCell("Valabil de la");
+                insuranceTable.addCell("Valabil până");
+
+                for (Insurance ins : insurances) {
+                    insuranceTable.addCell(ins.getCompany());
+                    insuranceTable.addCell(ins.getValidFrom().toString());
+                    insuranceTable.addCell(ins.getValidTo().toString());
                 }
+
+                document.add(insuranceTable);
             }
+
+            Paragraph parkingTitle = new Paragraph("🅿️ Istoric parcare", sectionTitleFont);
+            parkingTitle.getFont().setColor(new BaseColor(46, 125, 50)); // verde
+            parkingTitle.setSpacingBefore(10);
+            parkingTitle.setSpacingAfter(10);
+            document.add(parkingTitle);
+
+            if (parking.isEmpty()) {
+                document.add(new Paragraph("🚫 Niciun istoric de parcare.", redFont));
+            } else {
+                PdfPTable parkingTable = new PdfPTable(2);
+                parkingTable.setWidthPercentage(100);
+                parkingTable.setSpacingBefore(5);
+                parkingTable.setSpacingAfter(15);
+
+                parkingTable.addCell("Intrare");
+                parkingTable.addCell("Iesire");
+
+                for (var p : parking) {
+                    parkingTable.addCell(p.getEntryTime().toString());
+                    parkingTable.addCell(p.getExitTime() != null ? p.getExitTime().toString() : "N/A");
+                }
+
+                document.add(parkingTable);
+            }
+
+            // Footer
+            Paragraph footer = new Paragraph("Generat de ALPR • " + LocalDateTime.now(), grayFont);
+            footer.setAlignment(Element.ALIGN_RIGHT);
+            footer.setSpacingBefore(30);
+            document.add(footer);
 
         } catch (DocumentException e) {
             throw new IOException("Eroare la generarea PDF-ului: " + e.getMessage());
@@ -144,4 +210,5 @@ public class LicensePlateController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfBytes);
     }
+
 }
