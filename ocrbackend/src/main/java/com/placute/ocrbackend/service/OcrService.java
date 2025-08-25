@@ -1,5 +1,6 @@
 package com.placute.ocrbackend.service;
 
+import com.placute.ocrbackend.integration.OpenAIOcrService;
 import com.placute.ocrbackend.model.LicensePlate;
 import com.placute.ocrbackend.model.OcrHistory;
 import com.placute.ocrbackend.repository.LicensePlateRepository;
@@ -28,16 +29,27 @@ public class OcrService {
     @Autowired
     private OcrHistoryRepository historyRepository;
 
+    @Autowired
+    private OpenAIOcrService openAIOcrService;
+
     private File preprocessImage(File inputFile) throws IOException {
         BufferedImage image = ImageIO.read(inputFile);
-        BufferedImage gray = new BufferedImage(
-                image.getWidth(), image.getHeight(),
-                BufferedImage.TYPE_BYTE_BINARY);
+
+        BufferedImage gray = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
         Graphics2D g = gray.createGraphics();
         g.drawImage(image, 0, 0, null);
         g.dispose();
 
-        File output = new File(System.getProperty("java.io.tmpdir"), "preprocessed.png");
+        for (int y = 0; y < gray.getHeight(); y++) {
+            for (int x = 0; x < gray.getWidth(); x++) {
+                int rgb = gray.getRGB(x, y) & 0xFF;
+                int enhanced = Math.min(255, (int)(rgb * 1.4));
+                int pixel = (enhanced << 16) | (enhanced << 8) | enhanced;
+                gray.setRGB(x, y, pixel);
+            }
+        }
+
+        File output = new File(System.getProperty("java.io.tmpdir"), "preprocessed_advanced.png");
         ImageIO.write(gray, "png", output);
         return output;
     }
@@ -46,36 +58,21 @@ public class OcrService {
         try {
             File processed = preprocessImage(imageFile);
 
-            Tesseract tesseract = new Tesseract();
-            tesseract.setDatapath("C:\\Program Files\\Tesseract-OCR\\tessdata");
-            tesseract.setLanguage("eng");
+            String plate = detectWithTesseract(processed);
 
-            String rawText = tesseract.doOCR(processed);
-            String cleanedText = rawText.toUpperCase().replaceAll("[^A-Z0-9 ]", "");
-
-            Pattern pattern = Pattern.compile("[A-Z]{1,2}\\s?\\d{2}\\s?[A-Z]{3}");
-            Matcher matcher = pattern.matcher(cleanedText);
-
-            if (matcher.find()) {
-                String plate = matcher.group().replaceAll("\\s+", "");
-                List<LicensePlate> existing = plateRepository.findByPlateNumber(plate);
-                LicensePlate lp;
-                if (existing.isEmpty()) {
-                    lp = new LicensePlate(plate, imageFile.getAbsolutePath());
-                    plateRepository.save(lp);
-                } else {
-                    lp = existing.get(0);
-                }
-
-                OcrHistory history = new OcrHistory(lp, imageFile.getName(), LocalDateTime.now());
-                historyRepository.save(history);
-
-                return "Placuta detectata si salvata: " + plate;
-            } else {
-                return "Nicio placuta valida gasita.";
+            if (plate == null) {
+                System.out.println("Tesseract a eșuat. Apelăm OpenAI...");
+                plate = detectWithOpenAI(processed);
             }
 
-        } catch (TesseractException | IOException e) {
+            if (plate == null) {
+                return "Nicio placuta detectata.";
+            }
+
+            savePlate(plate, imageFile);
+            return "Placuta detectata si salvata: " + plate;
+
+        } catch (Exception e) {
             return "Eroare la OCR: " + e.getMessage();
         }
     }
@@ -84,38 +81,71 @@ public class OcrService {
         try {
             File processed = preprocessImage(imageFile);
 
-            Tesseract tesseract = new Tesseract();
-            tesseract.setDatapath("C:\\Program Files\\Tesseract-OCR\\tessdata");
-            tesseract.setLanguage("eng");
+            String plate = detectWithTesseract(processed);
 
-            String rawText = tesseract.doOCR(processed);
-            System.out.println("TEXT DETECTAT de OCR:\n" + rawText);
-            String cleanedText = rawText.toUpperCase().replaceAll("[^A-Z0-9 ]", "");
-
-            Pattern pattern = Pattern.compile("[A-Z]{1,2}\\s?\\d{2}\\s?[A-Z]{3}");
-            Matcher matcher = pattern.matcher(cleanedText);
-
-            if (!matcher.find()) {
-                return null;
+            if (plate == null) {
+                System.out.println("Tesseract a eșuat. Apelăm OpenAI...");
+                plate = detectWithOpenAI(processed);
             }
 
-            String plate = matcher.group().replaceAll("\\s+", "");
-            List<LicensePlate> existing = plateRepository.findByPlateNumber(plate);
-            LicensePlate lp;
-            if (existing.isEmpty()) {
-                lp = new LicensePlate(plate, imageFile.getAbsolutePath());
-                plateRepository.save(lp);
-            } else {
-                lp = existing.get(0);
-            }
+            if (plate == null) return null;
 
-            OcrHistory history = new OcrHistory(lp, imageFile.getName(), LocalDateTime.now());
-            historyRepository.save(history);
+            return savePlate(plate, imageFile);
 
-            return lp;
-
-        } catch (TesseractException | IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Eroare la OCR: " + e.getMessage());
         }
+    }
+
+    private String detectWithTesseract(File image) throws TesseractException {
+        Tesseract tesseract = new Tesseract();
+        tesseract.setDatapath("C:\\Program Files\\Tesseract-OCR\\tessdata");
+        tesseract.setLanguage("eng");
+
+        String rawText = tesseract.doOCR(image);
+        System.out.println("TEXT DETECTAT de Tesseract:\n" + rawText);
+        String cleanedText = rawText.toUpperCase().replaceAll("[^A-Z0-9 ]", "");
+
+        Pattern pattern = Pattern.compile("[A-Z]{1,2}\\s?\\d{2}\\s?[A-Z]{3}");
+        Matcher matcher = pattern.matcher(cleanedText);
+
+        if (matcher.find()) {
+            return matcher.group().replaceAll("\\s+", "");
+        }
+
+        return null;
+    }
+
+    private String detectWithOpenAI(File image) {
+        try {
+            String aiResult = openAIOcrService.detectPlateNumber(image);
+            if (aiResult == null) return null;
+
+            Pattern pattern = Pattern.compile("[A-Z]{1,2}\\s?\\d{2}\\s?[A-Z]{3}");
+            Matcher matcher = pattern.matcher(aiResult.toUpperCase());
+            if (matcher.find()) {
+                return matcher.group().replaceAll("\\s+", "");
+            }
+        } catch (IOException e) {
+            System.out.println("Eroare OpenAI: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    private LicensePlate savePlate(String plate, File imageFile) {
+        List<LicensePlate> existing = plateRepository.findByPlateNumber(plate);
+        LicensePlate lp;
+        if (existing.isEmpty()) {
+            lp = new LicensePlate(plate, imageFile.getAbsolutePath());
+            plateRepository.save(lp);
+        } else {
+            lp = existing.get(0);
+        }
+
+        OcrHistory history = new OcrHistory(lp, imageFile.getName(), LocalDateTime.now());
+        historyRepository.save(history);
+
+        return lp;
     }
 }
