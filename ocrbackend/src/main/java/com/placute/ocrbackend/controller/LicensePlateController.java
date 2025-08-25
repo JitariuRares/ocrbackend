@@ -93,12 +93,13 @@ public class LicensePlateController {
             PdfWriter writer = PdfWriter.getInstance(document, out);
             document.open();
 
-            Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, new BaseColor(0, 51, 102));
+            // Fonturi simplificate
+            Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, BaseColor.BLACK);
             Font labelFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
             Font textFont = new Font(Font.FontFamily.HELVETICA, 12);
-            Font sectionTitleFont = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
-            Font redFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.RED);
-            Font grayFont = new Font(Font.FontFamily.HELVETICA, 10, Font.ITALIC, new BaseColor(120, 120, 120));
+            Font sectionTitleFont = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD, new BaseColor(68, 68, 68)); // gri închis
+            Font redFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, new BaseColor(139, 0, 0)); // roșu sobru
+            Font grayFont = new Font(Font.FontFamily.HELVETICA, 10, Font.ITALIC, new BaseColor(102, 102, 102)); // gri footer
 
             Paragraph title = new Paragraph("Fisa completa pentru placuta: " + plateNumber, titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
@@ -141,8 +142,8 @@ public class LicensePlateController {
 
             document.add(vehicleTable);
 
+            // Secțiune asigurări
             Paragraph insuranceTitle = new Paragraph("🛡️ Asigurari", sectionTitleFont);
-            insuranceTitle.getFont().setColor(new BaseColor(255, 111, 0));
             insuranceTitle.setSpacingAfter(10);
             document.add(insuranceTitle);
 
@@ -167,8 +168,8 @@ public class LicensePlateController {
                 document.add(insuranceTable);
             }
 
+            // Secțiune parcare
             Paragraph parkingTitle = new Paragraph("🅿️ Istoric parcare", sectionTitleFont);
-            parkingTitle.getFont().setColor(new BaseColor(46, 125, 50)); // verde
             parkingTitle.setSpacingBefore(10);
             parkingTitle.setSpacingAfter(10);
             document.add(parkingTitle);
@@ -210,5 +211,6 @@ public class LicensePlateController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfBytes);
     }
+
 
 }
